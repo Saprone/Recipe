@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.saprone</groupId>
-	<artifactId>userregistrationreciever</artifactId>
+	<artifactId>recipe</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>userregistrationreciever</name>
-	<description>User Registration Reciever microservice for Recipe Generator</description>
+	<name>recipe</name>
+	<description>Recipe microservice for Recipe Generator</description>
 	<url/>
 	<licenses>
 		<license/>

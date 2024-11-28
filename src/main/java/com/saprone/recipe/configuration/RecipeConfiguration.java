@@ -1,4 +1,4 @@
-package com.saprone.userregistrationreciever.configuration;
+package com.saprone.recipe.configuration;
 
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.spring.cloud.service.servicebus.consumer.ServiceBusErrorHandler;
@@ -7,13 +7,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-public class UserRegistrationConfiguration {
+public class RecipeConfiguration {
     @Bean
     public ServiceBusRecordMessageListener processMessage() {
         return context -> {
             ServiceBusReceivedMessage message = context.getMessage();
             String messageBody = message.getBody().toString();
-            System.out.printf("Processing registration message. Id: %s; Contents: %s%n", message.getMessageId(), messageBody);
+
+            System.out.printf("Processing basket message. Id: %s; Contents: %s%n", message.getMessageId(), messageBody);
         };
     }
 

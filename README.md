@@ -1,2 +1,2 @@
-# userregistrationreciever
- User Registration Reciever microservice for Recipe Generator
+# Recipe
+Recipe microservice for Recipe Generator
