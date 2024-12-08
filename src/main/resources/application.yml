@@ -1,6 +1,6 @@
 spring:
   application:
-    name: Recipe
+    name: recipe
   cloud:
     azure:
      servicebus:
@@ -8,3 +8,5 @@ spring:
       entity-name: basket-queue
       entity-type: queue
       connection-string: ${SERVICE_BUS_CONNECTION_STRING}
+server:
+  port: 8084
