@@ -15,6 +15,7 @@ public class RecipeService {
     private static final Logger logger = LoggerFactory.getLogger(RecipeService.class);
     private static final String URL_CATEGORIES_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/categories.php";
     private static final String URL_CATEGORY_RECIPES_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/filter.php?c=";
+    //private static final String URL_RECIPE_DETAILS_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=";
 
     public RecipeService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
@@ -23,7 +24,6 @@ public class RecipeService {
     @PostConstruct
     public void fetchRecipes() {
         try {
-            // Fetch categories
             JsonNode response = webClient.get()
                 .uri(URL_CATEGORIES_MEAL_DB)
                 .retrieve()
@@ -31,7 +31,6 @@ public class RecipeService {
                 .block();
 
             if (response != null && response.has("categories")) {
-                // Loop through each category and fetch recipes
                 Flux.fromIterable(response.get("categories"))
                     .flatMap(category -> fetchRecipesByCategory(category.get("strCategory").asText()))
                     .flatMap(recipes -> Flux.fromIterable(recipes.findValue("meals")))
