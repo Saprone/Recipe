@@ -6,16 +6,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
+import java.util.stream.IntStream;
 
 @Service
 public class RecipeService {
 
     private final WebClient webClient;
     private static final Logger logger = LoggerFactory.getLogger(RecipeService.class);
-    private static final String URL_CATEGORIES_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/categories.php";
-    private static final String URL_CATEGORY_RECIPES_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/filter.php?c=";
-    //private static final String URL_RECIPE_DETAILS_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/lookup.php?i=";
+    private static final String RECIPES_FIRST_LETTER_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/search.php?f=";
 
     public RecipeService(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
@@ -23,33 +21,25 @@ public class RecipeService {
 
     @PostConstruct
     public void fetchRecipes() {
-        try {
-            JsonNode response = webClient.get()
-                .uri(URL_CATEGORIES_MEAL_DB)
+        IntStream.range(0, 26).mapToObj(i -> (char) ('a' + i)).forEach(letter -> {
+            String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+
+            webClient.get()
+                .uri(url)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .block();
+                .subscribe(response -> {
+                    JsonNode meals = response.path("meals");
+                    if (meals.isArray()) {
+                        meals.forEach(meal -> {
+                            String recipeName = meal.path("strMeal").asText();
 
-            if (response != null && response.has("categories")) {
-                Flux.fromIterable(response.get("categories"))
-                    .flatMap(category -> fetchRecipesByCategory(category.get("strCategory").asText()))
-                    .flatMap(recipes -> Flux.fromIterable(recipes.findValue("meals")))
-                    .map(meal -> meal.get("idMeal").asText()) // Get the idMeal
-                    .subscribe(idMeal -> {
-                        System.out.println("Meal ID: " + idMeal);
-                    }, error -> {
-                        logger.error("Error fetching recipes: {}", error.getMessage(), error);
-                    });
-            }
-        } catch (Exception e) {
-            logger.error("Error fetching categories: {}", e.getMessage());
-        }
-    }
-
-    private Flux<JsonNode> fetchRecipesByCategory(String categoryName) {
-        return webClient.get()
-            .uri(URL_CATEGORY_RECIPES_MEAL_DB + categoryName)
-            .retrieve()
-            .bodyToFlux(JsonNode.class);
+                            System.out.println(recipeName);
+                        });
+                    }
+                }, error -> {
+                    logger.error("Error fetching recipes for letter {}: {}", letter, error.getMessage());
+                });
+        });
     }
 }
