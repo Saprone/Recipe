@@ -1,6 +1,6 @@
 package com.saprone.recipe.configuration;
 
-import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
+/*import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.spring.cloud.service.servicebus.consumer.ServiceBusErrorHandler;
 import com.azure.spring.cloud.service.servicebus.consumer.ServiceBusRecordMessageListener;
 import org.springframework.context.annotation.Bean;
@@ -24,4 +24,4 @@ public class RecipeConfiguration {
             System.out.printf("Error receiving messages: %s%n", context.getFullyQualifiedNamespace());
         };
     }
-}
+}*/

@@ -1,12 +1,12 @@
 spring:
   application:
     name: recipe
-  cloud:
-    azure:
-     servicebus:
-      namespace: saproneservicebus
-      entity-name: basket-queue
-      entity-type: queue
-      connection-string: ${SERVICE_BUS_CONNECTION_STRING}
+  #cloud:
+    #azure:
+     #servicebus:
+      #namespace: saproneservicebus
+      #entity-name: basket-queue
+      #entity-type: queue
+      #connection-string: ${SERVICE_BUS_CONNECTION_STRING}
 server:
   port: 8084
