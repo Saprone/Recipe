@@ -32,9 +32,13 @@ public class RecipeService {
                     JsonNode meals = response.path("meals");
                     if (meals.isArray()) {
                         meals.forEach(meal -> {
+                            String recipeId = meal.path("idMeal").asText();
                             String recipeName = meal.path("strMeal").asText();
+                            String recipeIngredient1 = meal.path("strIngredient1").asText();
+                            String recipeIngredient2 = meal.path("strIngredient2").asText();
+                            String recipeIngredient3 = meal.path("strIngredient3").asText();
 
-                            System.out.println(recipeName);
+                            System.out.println(recipeId+" | "+recipeName+" | "+recipeIngredient1+", "+recipeIngredient2+", "+recipeIngredient3+", etc..");
                         });
                     }
                 }, error -> {
