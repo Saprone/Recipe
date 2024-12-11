@@ -108,6 +108,57 @@ public class RecipeService {
         }
     }
 
+    //@PostConstruct
+    public void saveRecipeIngredientDuplicates() {
+        try {
+            if (recipeIngredientDuplicateRepository.count() == 0) {
+                //looping through alphabet does save all the recipe ingredient id pairs in the joined table
+                //however the application shuts down at the end: "failed to start bean 'webServerStartStop'"
+                var letter = "a";
+                String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+
+                webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(JsonNode.class)
+                    .subscribe(response -> {
+                        JsonNode meals = response.path("meals");
+
+                        if (meals.isArray()) {
+                            meals.forEach(meal -> {
+                                Recipe recipe = new Recipe();
+                                recipe.setId(Integer.parseInt(meal.path("idMeal").asText()));
+
+                                for (int i = 1; i <= 20; i++) {
+                                    String ingredientName = meal.path("strIngredient" + i).asText(null);
+
+                                    if (ingredientName != null && !ingredientName.isEmpty()) {
+                                        ingredientName = convertIngredientName(ingredientName);
+                                        IngredientDuplicate ingredientDuplicate = ingredientDuplicateRepository.findByName(ingredientName);
+
+                                        if (ingredientDuplicate != null) {
+                                            RecipeIngredientDuplicate recipeIngredientDuplicate = new RecipeIngredientDuplicate();
+                                            recipeIngredientDuplicate.setRecipe(recipe);
+                                            recipeIngredientDuplicate.setIngredientDuplicate(ingredientDuplicate);
+
+                                            logger.info("Saved RecipeIngredientDuplicate for Recipe ID '{}' and Ingredient ID '{}'.", recipe.getId(), ingredientDuplicate.getId());
+                                            recipeIngredientDuplicateRepository.save(recipeIngredientDuplicate);
+                                        } else {
+                                            logger.warn("Ingredient '{}' not found in the database.", ingredientName);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }, error -> {
+                        logger.error("Error fetching recipes for the letter {}: {}", letter, error.getMessage());
+                    });
+            }
+        } catch (Exception e) {
+            logger.error("Error checking recipe ingredient duplicates database: {}", e.getMessage());
+        }
+    }
+
     private String convertIngredientName(String ingredientName) {
         return switch (ingredientName) {
             case "All spice" -> "Allspice";
@@ -132,54 +183,5 @@ public class RecipeService {
             case "Vermicelli" -> "Vermicelli Pasta";
             default -> ingredientName;
         };
-    }
-
-    //@PostConstruct
-    public void saveRecipeIngredientDuplicates() {
-        try {
-            //looping through alphabet does save all the recipe ingredient id pairs in the joined table
-            //however the application shuts down at the end: "failed to start bean 'webServerStartStop'"
-            var letter = "a";
-            String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
-
-            webClient.get()
-                .uri(url)
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                .subscribe(response -> {
-                    JsonNode meals = response.path("meals");
-
-                    if (meals.isArray()) {
-                        meals.forEach(meal -> {
-                            Recipe recipe = new Recipe();
-                            recipe.setId(Integer.parseInt(meal.path("idMeal").asText()));
-
-                            for (int i = 1; i <= 20; i++) {
-                                String ingredientName = meal.path("strIngredient" + i).asText(null);
-
-                                if (ingredientName != null && !ingredientName.isEmpty()) {
-                                    ingredientName = convertIngredientName(ingredientName);
-                                    IngredientDuplicate ingredientDuplicate = ingredientDuplicateRepository.findByName(ingredientName);
-
-                                    if (ingredientDuplicate != null) {
-                                        RecipeIngredientDuplicate recipeIngredientDuplicate = new RecipeIngredientDuplicate();
-                                        recipeIngredientDuplicate.setRecipe(recipe);
-                                        recipeIngredientDuplicate.setIngredientDuplicate(ingredientDuplicate);
-
-                                        logger.info("Saved RecipeIngredientDuplicate for Recipe ID '{}' and Ingredient ID '{}'.", recipe.getId(), ingredientDuplicate.getId());
-                                        recipeIngredientDuplicateRepository.save(recipeIngredientDuplicate);
-                                    } else {
-                                        logger.warn("Ingredient '{}' not found in the database.", ingredientName);
-                                    }
-                                }
-                            }
-                        });
-                    }
-                }, error -> {
-                    logger.error("Error fetching recipes for the letter {}: {}", letter, error.getMessage());
-                });
-        } catch (Exception e) {
-            logger.error("Error checking recipe ingredient duplicates database: {}", e.getMessage());
-        }
     }
 }
