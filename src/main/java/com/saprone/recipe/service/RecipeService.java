@@ -90,8 +90,8 @@ public class RecipeService {
 
                 if (ingredientDuplicate != null) {
                     RecipeIngredientDuplicate recipeIngredientDuplicate = new RecipeIngredientDuplicate();
-                    recipeIngredientDuplicate.setRecipeID(recipe);
-                    recipeIngredientDuplicate.setIngredientDuplicateID(ingredientDuplicate);
+                    recipeIngredientDuplicate.setRecipe(recipe);
+                    recipeIngredientDuplicate.setIngredientDuplicate(ingredientDuplicate);
                     logger.info("Saved RecipeIngredientDuplicate for Recipe ID '{}' and Ingredient ID '{}'.", recipe.getId(), ingredientDuplicate.getId());
                     recipeIngredientDuplicateRepository.save(recipeIngredientDuplicate);
                 } else {

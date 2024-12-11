@@ -14,6 +14,6 @@ public class IngredientDuplicate {
     private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ingredientDuplicate", cascade = CascadeType.ALL)
     private List<RecipeIngredientDuplicate> recipeIngredientDuplicates;
 }

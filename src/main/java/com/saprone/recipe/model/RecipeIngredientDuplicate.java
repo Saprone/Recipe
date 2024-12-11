@@ -13,10 +13,10 @@ public class RecipeIngredientDuplicate {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "ingredient_duplicate_id", nullable = false)
-    private IngredientDuplicate ingredientDuplicateID;
+    @JoinColumn(name = "ingredient_duplicate_id")
+    private IngredientDuplicate ingredientDuplicate;
 
     @ManyToOne
-    @JoinColumn(name = "recipe_id", nullable = false)
-    private Recipe recipeID;
+    @JoinColumn(name = "recipe_id")
+    private Recipe recipe;
 }
