@@ -13,6 +13,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 @Service
@@ -32,6 +35,19 @@ public class RecipeService {
         this.webClient = webClientBuilder.build();
         this.ingredientDuplicateRepository = ingredientDuplicateRepository;
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
+    }
+
+    //Send basket with ingredients through message queue to here
+    //@PostConstruct
+    public void filterRecipesOnIngredientsInBasket() {
+        List<Long> ingredientIds = Arrays.asList(11L, 112L, 209L);
+        List<Recipe> recipes = recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
+
+        if (recipes.isEmpty()) {
+            logger.info("No recipes found with IDs: {}", ingredientIds);
+        } else {
+            recipes.forEach(recipe -> logger.info("Found Recipe: {}", recipe.getName()));
+        }
     }
 
     //@PostConstruct
