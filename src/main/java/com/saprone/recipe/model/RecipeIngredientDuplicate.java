@@ -14,9 +14,9 @@ public class RecipeIngredientDuplicate {
 
     @ManyToOne
     @JoinColumn(name = "ingredient_duplicate_id", nullable = false)
-    private IngredientDuplicate ingredient;
+    private IngredientDuplicate ingredientDuplicateID;
 
     @ManyToOne
     @JoinColumn(name = "recipe_id", nullable = false)
-    private Recipe recipe;
+    private Recipe recipeID;
 }
