@@ -54,14 +54,12 @@ public class RecipeService {
                         meals.forEach(meal -> {
                             String recipeId = meal.path("idMeal").asText();
                             String recipeName = meal.path("strMeal").asText();
-                            //String recipeInstructions = meal.path("strInstructions").asText();
                             String recipeImage = meal.path("strMealThumb").asText();
 
                             if (!recipeRepository.existsById(Integer.parseInt(recipeId))) {
                                 Recipe recipe = new Recipe();
                                 recipe.setId(Integer.parseInt(recipeId));
                                 recipe.setName(recipeName);
-                                //recipe.setInstructions(recipeInstructions);
                                 recipe.setImage(recipeImage);
 
                                 recipeRepository.save(recipe);
