@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
 import java.util.stream.IntStream;
 
 @Service
@@ -32,58 +31,14 @@ public class RecipeService {
     }
 
     @PostConstruct
-    public void fetchAndSaveRecipes() {
-        try {
-            if (recipeRepository.count() == 0) {
-                IntStream.range(0, 26).mapToObj(i -> (char) ('a' + i)).forEach(letter -> {
-                    String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
-
-                    webClient.get()
-                        .uri(url)
-                        .retrieve()
-                        .bodyToMono(JsonNode.class)
-                        .subscribe(response -> {
-                            JsonNode meals = response.path("meals");
-
-                            if (meals.isArray()) {
-                                meals.forEach(meal -> {
-                                    String recipeId = meal.path("idMeal").asText();
-                                    String recipeName = meal.path("strMeal").asText();
-                                    String recipeImage = meal.path("strMealThumb").asText();
-
-                                    if (!recipeRepository.existsById(Integer.parseInt(recipeId))) {
-                                        Recipe recipe = new Recipe();
-                                        recipe.setId(Integer.parseInt(recipeId));
-                                        recipe.setName(recipeName);
-                                        recipe.setImage(recipeImage);
-                                        recipeRepository.save(recipe);
-                                        logger.info("Recipe '{}' saved successfully.", recipeName);
-                                    } else {
-                                        logger.info("Recipe '{}' already exists in the database.", recipeName);
-                                    }
-                                });
-                            }
-                        }, error -> {
-                            logger.error("Error fetching recipes for letter {}: {}", letter, error.getMessage());
-                        });
-                });
-            } else {
-                logger.info("Database is not empty. Skipping fetching and saving recipes.");
-            }
-        } catch (Exception e) {
-            logger.error("Error checking recipe database: {}", e.getMessage(), e);
-        }
-    }
-
-    @PostConstruct
     public void fetchAndSaveIngredientDuplicates() {
         try {
             if (ingredientDuplicateRepository.count() == 0) {
                 JsonNode response = webClient.get()
-                    .uri(URL_INGREDIENTS_MEAL_DB)
-                    .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .block();
+                        .uri(URL_INGREDIENTS_MEAL_DB)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
+                        .block();
 
                 if (response != null && response.has("meals")) {
                     for (JsonNode meal : response.get("meals")) {
@@ -105,11 +60,75 @@ public class RecipeService {
         }
     }
 
-    public Flux<Recipe> getAllRecipes() {
-        return Flux.fromIterable(recipeRepository.findAll());
+    @PostConstruct
+    public void saveRecipeIngredientDuplicates() {
+        try {
+            IntStream.range(0, 26).mapToObj(i -> (char) ('a' + i)).forEach(letter -> {
+                String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+
+                webClient.get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(JsonNode.class)
+                        .subscribe(response -> {
+                            JsonNode meals = response.path("meals");
+
+                            if (meals.isArray() && !meals.isEmpty()) {
+                                meals.forEach(meal -> {
+                                    String recipeID = meal.path("idMeal").asText(null);
+
+                                    for (int i = 1; i <= 20; i++) {
+                                        String ingredientName = meal.path("strIngredient" + i).asText(null);
+
+                                        if (ingredientName != null && !ingredientName.isEmpty()) {
+                                            ingredientName = convertIngredientName(ingredientName);
+
+                                            IngredientDuplicate ingredientDuplicate = ingredientDuplicateRepository.findByName(ingredientName);
+
+                                            if (ingredientDuplicate != null) {
+                                                Long ingredientID = ingredientDuplicate.getId();
+                                                System.out.println(recipeID + " | " + ingredientID);
+                                            } else {
+                                                System.out.println(recipeID + " | " + ingredientName + " | Not found");
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+                                logger.warn("No recipes found for letter: {}", letter);
+                            }
+                        }, error -> {
+                            logger.error("Error fetching recipes for the letter {}: {}", letter, error.getMessage());
+                        });
+            });
+        } catch (Exception e) {
+            logger.error("Error saving recipeIngredientDuplicates: {}", e.getMessage(), e);
+        }
     }
 
-    public Flux<IngredientDuplicate> getAllIngredientDuplicates() {
-        return Flux.fromIterable(ingredientDuplicateRepository.findAll());
+    private String convertIngredientName(String ingredientName) {
+        return switch (ingredientName) {
+            case "All spice" -> "Allspice";
+            case "Blackberrys" -> "Blackberries";
+            case "butter, softened" -> "Butternut Squash";
+            case "carrot" -> "Carrots";
+            case "Carrot" -> "Carrots";
+            case "Chicken thigh" -> "Chicken Thighs";
+            case "clove" -> "Cloves";
+            case "Clove" -> "Cloves";
+            case "Green Chili" -> "Green Chilli";
+            case "Gruyere cheese" -> "Gruyère";
+            case "Harissa" -> "Harissa Spice";
+            case "potato" -> "Potatoes";
+            case "red chili" -> "Red Chilli";
+            case "Red Chili" -> "Red Chilli";
+            case "Red Onion" -> "Red Onions";
+            case "self raising flour" -> "Self-raising Flour";
+            case "spring onion" -> "Spring Onions";
+            case "Tarragon" -> "Tarragon Leaves";
+            case "Tomato Purée" -> "Tomato Puree";
+            case "Vermicelli" -> "Vermicelli Pasta";
+            default -> ingredientName;
+        };
     }
 }
