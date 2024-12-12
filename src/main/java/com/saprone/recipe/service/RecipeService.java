@@ -7,13 +7,11 @@ import com.saprone.recipe.model.RecipeIngredientDuplicate;
 import com.saprone.recipe.repository.IngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeIngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -38,7 +36,6 @@ public class RecipeService {
     }
 
     public List<Recipe> getRecipes() {
-
         //[{"id":36,"name":"Butter"},{"id":197,"name":"Milk"},{"id":282,"name":"Sugar"}];
         List<Long> ingredientIds = Arrays.asList(36L, 197L, 282L);
         List<Recipe> recipes = recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
