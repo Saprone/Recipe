@@ -1,5 +1,6 @@
 package com.saprone.recipe.service;
 
+import com.azure.messaging.servicebus.ServiceBusReceiverAsyncClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.saprone.recipe.model.IngredientDuplicate;
 import com.saprone.recipe.model.Recipe;
@@ -7,13 +8,11 @@ import com.saprone.recipe.model.RecipeIngredientDuplicate;
 import com.saprone.recipe.repository.IngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeIngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
@@ -22,6 +21,7 @@ import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Value;
+import reactor.core.publisher.Mono;
 
 @Service
 public class RecipeService {
@@ -45,6 +45,32 @@ public class RecipeService {
         this.webClient = webClientBuilder.build();
         this.ingredientDuplicateRepository = ingredientDuplicateRepository;
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
+    }
+
+    public void getBasketFromMessageQueue() {
+        ServiceBusReceiverAsyncClient receiverClient = new ServiceBusClientBuilder()
+            .connectionString(serviceBusConnectionString)
+            .receiver()
+            .queueName(serviceBusEntityName)
+            .buildAsyncClient();
+
+        Mono<Void> messageMono = receiverClient.receiveMessages()
+            .flatMap(message -> {
+                try {
+                    String messageBody = message.getBody().toString();
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    List<Object> objectBaskets = objectMapper.readValue(messageBody, List.class);
+                    logger.info("Received basket: {}", objectBaskets);
+                    return receiverClient.complete(message);
+                } catch (Exception e) {
+                    logger.error("Error receiving message: {}", e.getMessage());
+                    return Mono.empty();
+                }
+            })
+            .doOnError(error -> logger.error("Error during message processing: {}", error.getMessage()))
+            .then();
+
+        messageMono.subscribe();
     }
 
     public List<Long> getIngredientBasketIds() {
@@ -79,15 +105,11 @@ public class RecipeService {
         return ingredientBasketIds;
     }
 
-    @PostConstruct
-    public void getRecipes() {
-        List<Long> ingredientIdsTest = Arrays.asList(36L, 197L, 282L);
-        System.out.println(ingredientIdsTest);
-
+    public List<Recipe> getRecipes() {
         List<Long> ingredientIds = getIngredientBasketIds();
         System.out.println(ingredientIds);
 
-        //return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
+        return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
     }
 
     //@PostConstruct
