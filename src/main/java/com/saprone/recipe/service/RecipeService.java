@@ -47,10 +47,9 @@ public class RecipeService {
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
     }
 
-    @PostConstruct
-    public List<Long> getBasketIds() {
+    public List<Long> getIngredientBasketIds() {
         Object mostRecentBasket = null;
-        List<Long> basketIds = new ArrayList<>();
+        List<Long> ingredientBasketIds = new ArrayList<>();
 
         try (ServiceBusReceiverClient receiverClient = new ServiceBusClientBuilder()
             .connectionString(serviceBusConnectionString)
@@ -63,7 +62,7 @@ public class RecipeService {
 
                 try {
                     mostRecentBasket = objectMapper.readValue(messageBody, List.class);
-                    //receiverClient.complete(message);
+                    receiverClient.complete(message);
                 } catch (Exception e) {
                     logger.error("Error processing message: {}", e.getMessage());
                 }
@@ -72,19 +71,23 @@ public class RecipeService {
             logger.error("Error receiving messages: {}", e.getMessage());
         }
 
-        System.out.println(mostRecentBasket);
+        for (String item : mostRecentBasket.toString().substring(1, mostRecentBasket.toString().length() - 1).split("},")) {
+            String idString = item.replaceAll(".*id=(\\d+),.*", "$1");
+            ingredientBasketIds.add(Long.parseLong(idString));
+        }
 
-        
-
-        basketIds.add(1L);
-
-        return basketIds;
+        return ingredientBasketIds;
     }
 
-    public List<Recipe> getRecipes() {
-        List<Long> ingredientIds = Arrays.asList(36L, 197L, 282L);
+    @PostConstruct
+    public void getRecipes() {
+        List<Long> ingredientIdsTest = Arrays.asList(36L, 197L, 282L);
+        System.out.println(ingredientIdsTest);
 
-        return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
+        List<Long> ingredientIds = getIngredientBasketIds();
+        System.out.println(ingredientIds);
+
+        //return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
     }
 
     //@PostConstruct

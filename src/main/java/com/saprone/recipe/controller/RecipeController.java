@@ -22,10 +22,15 @@ public class RecipeController {
         this.recipeService = recipeService;
     }
 
-    @GetMapping()
+    /*@GetMapping()
     public ResponseEntity<List<Recipe>> getRecipes() {
         List<Recipe> recipes = recipeService.getRecipes();
 
         return ResponseEntity.ok(recipes);
+    }*/
+
+    @GetMapping
+    public void getRecipes() {
+        recipeService.getRecipes();
     }
 }
