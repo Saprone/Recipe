@@ -7,6 +7,7 @@ import com.saprone.recipe.model.RecipeIngredientDuplicate;
 import com.saprone.recipe.repository.IngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeIngredientDuplicateRepository;
 import com.saprone.recipe.repository.RecipeRepository;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
+import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
+import com.azure.messaging.servicebus.ServiceBusReceiverClient;
+import com.azure.messaging.servicebus.ServiceBusClientBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class RecipeService {
@@ -26,6 +33,11 @@ public class RecipeService {
     private static final Logger logger = LoggerFactory.getLogger(RecipeService.class);
     private static final String RECIPES_FIRST_LETTER_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/search.php?f=";
     private static final String URL_INGREDIENTS_MEAL_DB = "https://www.themealdb.com/api/json/v1/1/list.php?i=list";
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    @Value("${spring.cloud.azure.servicebus.connection-string}")
+    private String serviceBusConnectionString;
+    @Value("${spring.cloud.azure.servicebus.entity-name}")
+    private String serviceBusEntityName;
 
     @Autowired
     public RecipeService(RecipeRepository recipeRepository, WebClient.Builder webClientBuilder, IngredientDuplicateRepository ingredientDuplicateRepository, RecipeIngredientDuplicateRepository recipeIngredientDuplicateRepository) {
@@ -35,18 +47,44 @@ public class RecipeService {
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
     }
 
-    public List<Recipe> getRecipes() {
-        //[{"id":36,"name":"Butter"},{"id":197,"name":"Milk"},{"id":282,"name":"Sugar"}];
-        List<Long> ingredientIds = Arrays.asList(36L, 197L, 282L);
-        List<Recipe> recipes = recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
+    @PostConstruct
+    public List<Long> getBasketIds() {
+        Object mostRecentBasket = null;
+        List<Long> basketIds = new ArrayList<>();
 
-        if (recipes.isEmpty()) {
-            logger.info("No recipes found with IDs: {}", ingredientIds);
-        } else {
-            recipes.forEach(recipe -> logger.info("Found Recipe: {}", recipe.getName()));
+        try (ServiceBusReceiverClient receiverClient = new ServiceBusClientBuilder()
+            .connectionString(serviceBusConnectionString)
+            .receiver()
+            .queueName(serviceBusEntityName)
+            .buildClient()) {
+
+            for (ServiceBusReceivedMessage message : receiverClient.receiveMessages(10)) {
+                String messageBody = message.getBody().toString();
+
+                try {
+                    mostRecentBasket = objectMapper.readValue(messageBody, List.class);
+                    //receiverClient.complete(message);
+                } catch (Exception e) {
+                    logger.error("Error processing message: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error receiving messages: {}", e.getMessage());
         }
 
-        return recipes;
+        System.out.println(mostRecentBasket);
+
+        
+
+        basketIds.add(1L);
+
+        return basketIds;
+    }
+
+    public List<Recipe> getRecipes() {
+        List<Long> ingredientIds = Arrays.asList(36L, 197L, 282L);
+
+        return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
     }
 
     //@PostConstruct
