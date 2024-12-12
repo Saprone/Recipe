@@ -37,10 +37,10 @@ public class RecipeService {
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
     }
 
-    //Send basket with ingredients through message queue to here
-    //@PostConstruct
-    public void filterRecipesOnIngredientsInBasket() {
-        List<Long> ingredientIds = Arrays.asList(11L, 112L, 209L);
+    public List<Recipe> getRecipes() {
+
+        //[{"id":36,"name":"Butter"},{"id":197,"name":"Milk"},{"id":282,"name":"Sugar"}];
+        List<Long> ingredientIds = Arrays.asList(36L, 197L, 282L);
         List<Recipe> recipes = recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
 
         if (recipes.isEmpty()) {
@@ -48,6 +48,8 @@ public class RecipeService {
         } else {
             recipes.forEach(recipe -> logger.info("Found Recipe: {}", recipe.getName()));
         }
+
+        return recipes;
     }
 
     //@PostConstruct
