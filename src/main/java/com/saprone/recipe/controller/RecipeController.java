@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -22,15 +25,15 @@ public class RecipeController {
         this.recipeService = recipeService;
     }
 
-    //@GetMapping()
+    @GetMapping
     public ResponseEntity<List<Recipe>> getRecipes() {
-        List<Recipe> recipes = recipeService.getRecipes();
+        //Mono<List<Object>> basket = recipeService.getBasketFromMessageQueue();
+        //List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
+
+        System.out.println("recipes endpoint reached");
+        List<Long> basketingredienIdsTest = Arrays.asList(36L, 197L, 282L);
+        List<Recipe> recipes = recipeService.getRecipes(basketingredienIdsTest);
 
         return ResponseEntity.ok(recipes);
-    }
-
-    @GetMapping
-    public void getBasketFromMessageQueue() {
-        recipeService.getBasketFromMessageQueue();
     }
 }

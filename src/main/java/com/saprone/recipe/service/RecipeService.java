@@ -47,69 +47,49 @@ public class RecipeService {
         this.recipeIngredientDuplicateRepository = recipeIngredientDuplicateRepository;
     }
 
-    public void getBasketFromMessageQueue() {
+    public Mono<List<Object>> getBasketFromMessageQueue() {
         ServiceBusReceiverAsyncClient receiverClient = new ServiceBusClientBuilder()
             .connectionString(serviceBusConnectionString)
             .receiver()
             .queueName(serviceBusEntityName)
             .buildAsyncClient();
 
-        Mono<Void> messageMono = receiverClient.receiveMessages()
+        return receiverClient.receiveMessages()
             .flatMap(message -> {
                 try {
                     String messageBody = message.getBody().toString();
                     ObjectMapper objectMapper = new ObjectMapper();
-                    List<Object> objectBaskets = objectMapper.readValue(messageBody, List.class);
-                    logger.info("Received basket: {}", objectBaskets);
-                    return receiverClient.complete(message);
+                    List<Object> objectBasket = objectMapper.readValue(messageBody, List.class);
+
+                    logger.info("Received basket: {}", objectBasket);
+                    return receiverClient.complete(message).then(Mono.just(objectBasket));
                 } catch (Exception e) {
                     logger.error("Error receiving message: {}", e.getMessage());
                     return Mono.empty();
                 }
             })
             .doOnError(error -> logger.error("Error during message processing: {}", error.getMessage()))
-            .then();
-
-        messageMono.subscribe();
+            .next();
     }
 
-    public List<Long> getIngredientBasketIds() {
-        Object mostRecentBasket = null;
+    public List<Long> getIngredientBasketIds(Mono<List<Object>> basketMono) {
+        List<Object> basket = basketMono.block();
         List<Long> ingredientBasketIds = new ArrayList<>();
 
-        try (ServiceBusReceiverClient receiverClient = new ServiceBusClientBuilder()
-            .connectionString(serviceBusConnectionString)
-            .receiver()
-            .queueName(serviceBusEntityName)
-            .buildClient()) {
+        System.out.println("Basket content: " + basket);
 
-            for (ServiceBusReceivedMessage message : receiverClient.receiveMessages(10)) {
-                String messageBody = message.getBody().toString();
-
-                try {
-                    mostRecentBasket = objectMapper.readValue(messageBody, List.class);
-                    receiverClient.complete(message);
-                } catch (Exception e) {
-                    logger.error("Error processing message: {}", e.getMessage());
-                }
+        if (basket != null) {
+            for (Object item : basket) {
+                String idString = item.toString().replaceAll(".*id=(\\d+),.*", "$1");
+                ingredientBasketIds.add(Long.parseLong(idString));
             }
-        } catch (Exception e) {
-            logger.error("Error receiving messages: {}", e.getMessage());
-        }
-
-        for (String item : mostRecentBasket.toString().substring(1, mostRecentBasket.toString().length() - 1).split("},")) {
-            String idString = item.replaceAll(".*id=(\\d+),.*", "$1");
-            ingredientBasketIds.add(Long.parseLong(idString));
         }
 
         return ingredientBasketIds;
     }
 
-    public List<Recipe> getRecipes() {
-        List<Long> ingredientIds = getIngredientBasketIds();
-        System.out.println(ingredientIds);
-
-        return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
+    public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
+        return recipeRepository.findRecipesByIngredientIds(ingredientBasketIds, ingredientBasketIds.size());
     }
 
     //@PostConstruct
@@ -191,7 +171,8 @@ public class RecipeService {
         try {
             if (recipeIngredientDuplicateRepository.count() == 0) {
                 //looping through alphabet does save all the recipe ingredient id pairs in the joined table
-                //however the application shuts down at the end: "failed to start bean 'webServerStartStop'"
+                //however the application shuts down at the very end: "failed to start bean 'webServerStartStop'"
+                //manually going through each letter of the alphabet saves everything correctly without shutting down
                 var letter = "a";
                 String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
 
