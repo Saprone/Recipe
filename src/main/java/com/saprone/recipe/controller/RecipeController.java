@@ -26,13 +26,13 @@ public class RecipeController {
     }
 
     @GetMapping
-    public List<Recipe> getRecipes() {
+    public ResponseEntity<List<Recipe>> getRecipes() {
         List<Object> basket = recipeService.getBasketFromMessageQueue();
         List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
         List<Recipe> recipes = recipeService.getRecipes(ingredientBasketIds);
 
         System.out.println("Recipes: "+recipes);
 
-        return recipes;
+        return ResponseEntity.ok(recipes);
     }
 }
