@@ -29,6 +29,10 @@ public class RecipeController {
     public List<Recipe> getRecipes() {
         List<Object> basket = recipeService.getBasketFromMessageQueue();
         List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
-        return recipeService.getRecipes(ingredientBasketIds);
+        List<Recipe> recipes = recipeService.getRecipes(ingredientBasketIds);
+
+        System.out.println("Recipes: "+recipes);
+
+        return recipes;
     }
 }

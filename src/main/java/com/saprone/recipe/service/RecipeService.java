@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import java.util.ArrayList;
+import java.util.Map;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 
 @Service
@@ -60,13 +63,21 @@ public class RecipeService {
 
     public List<Long> getIngredientBasketIds(List<Object> basket) {
         List<Long> ingredientBasketIds = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        System.out.println("Basket content: " + basket);
-
-        if (basket != null) {
+        if (basket != null && !basket.isEmpty()) {
             for (Object item : basket) {
-                String idString = item.toString().replaceAll(".*id=(\\d+),.*", "$1");
-                ingredientBasketIds.add(Long.parseLong(idString));
+                try {
+                    String jsonString = item.toString();
+                    List<Map<String, Object>> items = objectMapper.readValue(jsonString, new TypeReference<List<Map<String, Object>>>() {});
+
+                    for (Map<String, Object> map : items) {
+                        Long id = ((Number) map.get("id")).longValue();
+                        ingredientBasketIds.add(id);
+                    }
+                } catch (Exception e) {
+                    logger.error("Error parsing basket item: {}", e.getMessage(), e);
+                }
             }
         }
 
