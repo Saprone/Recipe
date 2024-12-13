@@ -26,14 +26,9 @@ public class RecipeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Recipe>> getRecipes() {
-        //Mono<List<Object>> basket = recipeService.getBasketFromMessageQueue();
-        //List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
-
-        System.out.println("recipes endpoint reached");
-        List<Long> basketingredienIdsTest = Arrays.asList(36L, 197L, 282L);
-        List<Recipe> recipes = recipeService.getRecipes(basketingredienIdsTest);
-
-        return ResponseEntity.ok(recipes);
+    public List<Recipe> getRecipes() {
+        List<Object> basket = recipeService.getBasketFromMessageQueue();
+        List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
+        return recipeService.getRecipes(ingredientBasketIds);
     }
 }
