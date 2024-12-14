@@ -85,7 +85,7 @@ public class RecipeService {
         return ingredientBasketIds;
     }
 
-    /*public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
-        return recipeRepository.findRecipesByIngredientBasketIds(ingredientBasketIds);
-    }*/
+    public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
+        return recipeRepository.findRecipesByIngredientBasketIds(ingredientBasketIds, ingredientBasketIds.size());
+    }
 }

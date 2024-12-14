@@ -41,9 +41,9 @@ public class RecipeController {
 
         System.out.println(ingredientBasketIds);
 
-        //List<Recipe> recipes = recipeService.getRecipes(ingredientBasketIds);
+        List<Recipe> recipes = recipeService.getRecipes(ingredientBasketIds);
 
-        //System.out.println("Recipes: "+recipes);
+        System.out.println("Recipes: "+recipes);
 
         //return ResponseEntity.ok(recipes);
     }
