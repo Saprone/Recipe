@@ -1,11 +1,7 @@
 package com.saprone.recipe.service;
 
-import com.azure.core.util.IterableStream;
-import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
-import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.saprone.recipe.model.Recipe;
 import com.saprone.recipe.repository.RecipeRepository;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +13,9 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import com.azure.core.util.IterableStream;
+import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
+import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 
 @Service
 public class RecipeService {
@@ -85,7 +84,7 @@ public class RecipeService {
         return ingredientBasketIds;
     }
 
-    public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
-        return recipeRepository.findRecipesByIngredientBasketIds(ingredientBasketIds, ingredientBasketIds.size());
+    public List<Recipe> filterRecipesOnIngredientsInBasket(List<Long> ingredientIds) {
+        return recipeRepository.findRecipesByIngredientIds(ingredientIds, ingredientIds.size());
     }
 }

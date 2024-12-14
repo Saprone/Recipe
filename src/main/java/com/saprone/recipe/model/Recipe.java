@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Getter
@@ -15,5 +16,6 @@ public class Recipe {
     private String image;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<RecipeIngredientDuplicate> recipeIngredientDuplicates;
 }
