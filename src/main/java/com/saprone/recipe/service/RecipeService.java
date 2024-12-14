@@ -5,6 +5,7 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.saprone.recipe.model.Recipe;
 import com.saprone.recipe.repository.RecipeRepository;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,7 +85,7 @@ public class RecipeService {
         return ingredientBasketIds;
     }
 
-    public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
-        return recipeRepository.findRecipesByIngredientIds(ingredientBasketIds, ingredientBasketIds.size());
-    }
+    /*public List<Recipe> getRecipes(List<Long> ingredientBasketIds) {
+        return recipeRepository.findRecipesByIngredientBasketIds(ingredientBasketIds);
+    }*/
 }
