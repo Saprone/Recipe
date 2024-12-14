@@ -26,7 +26,7 @@ public class RecipeController {
     public ResponseEntity<List<Recipe>> getRecipes() {
         List<Object> basket = recipeService.getBasketFromMessageQueue();
         List<Long> ingredientBasketIds = recipeService.getIngredientBasketIds(basket);
-        List<Recipe> recipes = recipeService.filterRecipesOnIngredientsInBasket(ingredientBasketIds);
+        List<Recipe> recipes = recipeService.findRecipesOnIngredientsInBasket(ingredientBasketIds);
 
         return ResponseEntity.ok(recipes);
     }
