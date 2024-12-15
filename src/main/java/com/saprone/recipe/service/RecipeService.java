@@ -67,7 +67,10 @@ public class RecipeService {
                 ServiceBusReceivedMessage lastMessage = messages.getLast();
                 Object basket = lastMessage.getBody();
                 baskets.add(basket);
-                receiverClient.complete(lastMessage);
+
+                for (ServiceBusReceivedMessage message : messages) {
+                    receiverClient.complete(message);
+                }
             }
         } catch (Exception e) {
             logger.error("Error receiving basket from message queue: {}", e.getMessage(), e);
