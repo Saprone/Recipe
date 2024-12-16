@@ -30,4 +30,9 @@ public class RecipeController {
 
         return ResponseEntity.ok(recipes);
     }
+
+    @GetMapping("/status")
+    public ResponseEntity<Boolean> getRecipeStatus() {
+        return ResponseEntity.ok(true);
+    }
 }
