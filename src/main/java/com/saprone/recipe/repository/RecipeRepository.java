@@ -12,7 +12,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
 
     @Query("SELECT r FROM Recipe r JOIN r.recipeIngredientDuplicates rid " +
             "WHERE rid.ingredientDuplicate.id IN :ingredientIds " +
-            "GROUP BY r.id, r.name, r.image " +
+            "GROUP BY r.id, r.name " +
             "HAVING COUNT(rid.ingredientDuplicate.id) = :count")
     List<Recipe> findRecipesByIngredientIds(@Param("ingredientIds") List<Long> ingredientIds, @Param("count") long count);
 }

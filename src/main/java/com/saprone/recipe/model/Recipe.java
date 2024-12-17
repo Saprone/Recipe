@@ -14,7 +14,6 @@ public class Recipe {
     @Id
     private Integer id;
     private String name;
-    private String image;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL)
     @JsonIgnore
