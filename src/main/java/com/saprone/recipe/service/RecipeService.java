@@ -176,47 +176,61 @@ public class RecipeService {
     public void saveRecipeIngredientDuplicates() {
         try {
             if (recipeIngredientDuplicateRepository.count() == 0) {
-                IntStream.range(0, 26).mapToObj(i -> (char) ('a' + i)).forEach(letter -> {
-                    String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
-
-                    try {
-                        ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-                        JsonNode meals = Objects.requireNonNull(response.getBody()).path("meals");
-
-                        if (meals.isArray()) {
-                            meals.forEach(meal -> {
-                                Recipe recipe = new Recipe();
-                                recipe.setId(Integer.parseInt(meal.path("idMeal").asText()));
-
-                                for (int i = 1; i <= 20; i++) {
-                                    String ingredientName = meal.path("strIngredient" + i).asText(null);
-
-                                    if (ingredientName != null && !ingredientName.isEmpty()) {
-                                        ingredientName = convertIngredientName(ingredientName);
-                                        IngredientDuplicate ingredientDuplicate = ingredientDuplicateRepository.findByName(ingredientName);
-
-                                        if (ingredientDuplicate != null) {
-                                            RecipeIngredientDuplicate recipeIngredientDuplicate = new RecipeIngredientDuplicate();
-                                            recipeIngredientDuplicate.setRecipe(recipe);
-                                            recipeIngredientDuplicate.setIngredientDuplicate(ingredientDuplicate);
-
-                                            logger.info("Saved RecipeIngredientDuplicate for Recipe ID '{}' and Ingredient ID '{}'.", recipe.getId(), ingredientDuplicate.getId());
-                                            recipeIngredientDuplicateRepository.save(recipeIngredientDuplicate);
-                                        } else {
-                                            logger.warn("Ingredient '{}' not found in the database.", ingredientName);
-                                        }
-                                    }
-                                }
-                            });
-                        }
-                    } catch (Exception error) {
-                        logger.error("Error fetching recipes for the letter {}: {}", letter, error.getMessage());
-                    }
-                });
+                IntStream.range(0, 26)
+                    .mapToObj(i -> (char) ('a' + i))
+                    .forEach(this::fetchAndSaveRecipesForLetter);
             }
         } catch (Exception e) {
             logger.error("Error checking recipe ingredient duplicates database: {}", e.getMessage());
         }
+    }
+
+    private void fetchAndSaveRecipesForLetter(char letter) {
+        String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+
+        try {
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
+            JsonNode meals = Objects.requireNonNull(response.getBody()).path("meals");
+
+            if (meals.isArray()) {
+                meals.forEach(this::processRecipe);
+            }
+        } catch (Exception error) {
+            logger.error("Error fetching recipes for the letter {}: {}", letter, error.getMessage());
+        }
+    }
+
+    private void processRecipe(JsonNode meal) {
+        Recipe recipe = new Recipe();
+        recipe.setId(Integer.parseInt(meal.path("idMeal").asText()));
+
+        for (int i = 1; i <= 20; i++) {
+            String ingredientName = meal.path("strIngredient" + i).asText(null);
+            
+            if (ingredientName != null && !ingredientName.isEmpty()) {
+                processIngredient(recipe, ingredientName);
+            }
+        }
+    }
+
+    private void processIngredient(Recipe recipe, String ingredientName) {
+        ingredientName = convertIngredientName(ingredientName);
+        IngredientDuplicate ingredientDuplicate = ingredientDuplicateRepository.findByName(ingredientName);
+
+        if (ingredientDuplicate != null) {
+            saveRecipeIngredientDuplicate(recipe, ingredientDuplicate);
+        } else {
+            logger.warn("Ingredient '{}' not found in the database.", ingredientName);
+        }
+    }
+
+    private void saveRecipeIngredientDuplicate(Recipe recipe, IngredientDuplicate ingredientDuplicate) {
+        RecipeIngredientDuplicate recipeIngredientDuplicate = new RecipeIngredientDuplicate();
+        recipeIngredientDuplicate.setRecipe(recipe);
+        recipeIngredientDuplicate.setIngredientDuplicate(ingredientDuplicate);
+
+        logger.info("Saved RecipeIngredientDuplicate for Recipe ID '{}' and Ingredient ID '{}'.", recipe.getId(), ingredientDuplicate.getId());
+        recipeIngredientDuplicateRepository.save(recipeIngredientDuplicate);
     }
 
     private String convertIngredientName(String ingredientName) {
