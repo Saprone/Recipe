@@ -6,9 +6,10 @@ import lombok.Setter;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
 @Getter
 @Setter
+@Entity
+@Table(name = "recipe", schema = "dbo")
 public class Recipe {
     @Id
     private Integer id;

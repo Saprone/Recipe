@@ -5,9 +5,10 @@ import lombok.Getter;
 import lombok.Setter;
 import java.util.List;
 
-@Entity
 @Getter
 @Setter
+@Entity
+@Table(name = "ingredient_duplicate", schema = "dbo")
 public class IngredientDuplicate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

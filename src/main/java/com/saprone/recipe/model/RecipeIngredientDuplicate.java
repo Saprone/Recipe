@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
 @Getter
 @Setter
+@Entity
+@Table(name = "recipe_ingredient_duplicate", schema = "dbo")
 public class RecipeIngredientDuplicate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
