@@ -113,9 +113,10 @@ public class RecipeService {
         try {
             if (ingredientDuplicateRepository.count() == 0) {
                 ResponseEntity<JsonNode> response = restTemplate.getForEntity(URL_INGREDIENTS_MEAL_DB, JsonNode.class);
+                String pathName = "meals";
 
-                if (response.getBody() != null && response.getBody().has("meals")) {
-                    for (JsonNode meal : response.getBody().get("meals")) {
+                if (response.getBody() != null && response.getBody().has(pathName) {
+                    for (JsonNode meal : response.getBody().get(pathName)) {
                         String ingredientDuplicateName = meal.get("strIngredient").asText();
                         IngredientDuplicate ingredientDuplicate = new IngredientDuplicate();
                         ingredientDuplicate.setName(ingredientDuplicateName);
@@ -139,10 +140,11 @@ public class RecipeService {
             if (recipeRepository.count() == 0) {
                 IntStream.range(0, 26).mapToObj(i -> (char) ('a' + i)).forEach(letter -> {
                     String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+                    String pathName = "meals";
 
                     try {
                         ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-                        JsonNode meals = Objects.requireNonNull(response.getBody()).path("meals");
+                        JsonNode meals = Objects.requireNonNull(response.getBody()).path(pathName);
 
                         if (meals.isArray()) {
                             meals.forEach(meal -> {
@@ -187,10 +189,11 @@ public class RecipeService {
 
     private void fetchAndSaveRecipesForLetter(char letter) {
         String url = RECIPES_FIRST_LETTER_MEAL_DB + letter;
+        String pathName = "meals";
 
         try {
             ResponseEntity<JsonNode> response = restTemplate.getForEntity(url, JsonNode.class);
-            JsonNode meals = Objects.requireNonNull(response.getBody()).path("meals");
+            JsonNode meals = Objects.requireNonNull(response.getBody()).path(pathName);
 
             if (meals.isArray()) {
                 meals.forEach(this::processRecipe);
