@@ -31,7 +31,7 @@ class RecipeControllerTest {
         Recipe recipe = new Recipe();
         recipe.setId(1);
         recipe.setName("Beef Wellington");
-        
+
         when(recipeService.getBasketFromMessageQueue()).thenReturn(List.of());
         when(recipeService.getIngredientBasketIds(anyList())).thenReturn(List.of());
         when(recipeService.findRecipesOnIngredientsInBasket(anyList())).thenReturn(List.of(recipe));
@@ -54,7 +54,6 @@ class RecipeControllerTest {
 
         // Assert
         assertThat(response.getBody()).isTrue();
-        verify(recipeService, times(0)).getBasketFromMessageQueue(); // No interaction with service
+        verify(recipeService, times(0)).getBasketFromMessageQueue();
     }
 }
-
