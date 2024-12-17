@@ -115,7 +115,7 @@ public class RecipeService {
                 ResponseEntity<JsonNode> response = restTemplate.getForEntity(URL_INGREDIENTS_MEAL_DB, JsonNode.class);
                 String pathName = "meals";
 
-                if (response.getBody() != null && response.getBody().has(pathName) {
+                if (response.getBody() != null && response.getBody().has(pathName)) {
                     for (JsonNode meal : response.getBody().get(pathName)) {
                         String ingredientDuplicateName = meal.get("strIngredient").asText();
                         IngredientDuplicate ingredientDuplicate = new IngredientDuplicate();
