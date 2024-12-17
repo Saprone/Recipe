@@ -6,10 +6,10 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.web.client.RestTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AppConfigTest {
+class AppConfigTest {
 
     @Test
-    public void restTemplateBeanShouldExist()
+    void restTemplateBeanShouldExist()
     {
         ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
         RestTemplate restTemplate = context.getBean(RestTemplate.class);
