@@ -1,0 +1,19 @@
+# Ignore Maven or Gradle files
+*.log
+*.class
+*.jar
+*.war
+*.zip
+*.tar
+*.tar.gz
+
+# Ignore directories
+target/
+build/
+.idea/
+.gradle/
+.DS_Store
+*.iml
+
+# Ignore local environment variables and settings
+.env
