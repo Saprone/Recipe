@@ -7,8 +7,8 @@ on:
     branches: 
       [ main ]
     paths:
-    - '**'
-    - '.github/workflows/recipegenerator-recipe-AutoDeployTrigger-13f13b68-5623-49c1-8adf-d3886860136a.yml'
+      - '**'
+      - '.github/workflows/recipegenerator-recipe-AutoDeployTrigger-13f13b68-5623-49c1-8adf-d3886860136a.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      
@@ -24,6 +24,21 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21' # Specify the Java version you need
+          distribution: 'adopt'
+
+      - name: Run unit tests with Maven
+        run: mvn test
+
+      - name: Run SonarCloud analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn clean verify sonar:sonar
+
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -31,7 +46,7 @@ jobs:
           tenant-id: ${{ secrets.RECIPEGENERATORRECIPE_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.RECIPEGENERATORRECIPE_AZURE_SUBSCRIPTION_ID }}
 
-      - name: Build and push container image to registry
+      - name: Build and push container image to Docker Hub
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
